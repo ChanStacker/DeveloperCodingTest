@@ -1,13 +1,8 @@
+using AspNetCoreRateLimit;
 using HackerNewsGateway;
 using HackerNewsGateway.Model;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using System;
 using System.Text.Json;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +17,32 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new DateTimeConverter());
 });
 
+// Configure rate limiting options
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.GeneralRules = new List<RateLimitRule>
+    {
+        new RateLimitRule
+        {
+            Endpoint = "*",
+            Limit = 100, // Maximum number of requests allowed
+            Period = "1m" // Time period for the limit
+        }
+    };
+});
+
+// Add rate limiting services
+builder.Services.AddMemoryCache();
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddOptions();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+
 var app = builder.Build();
+
+// Use rate limiting middleware
+app.UseIpRateLimiting();
 
 // Configure the HTTP request pipeline.
 app.MapGet("/stories/best/{n}", async (IHttpClientFactory httpClientFactory, int n) =>
