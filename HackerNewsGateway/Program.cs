@@ -64,12 +64,14 @@ app.MapGet("/best-stories/{n}", async (IHttpClientFactory httpClientFactory, int
         var bestStoriesItems = new List<HackerNewsItem>();
         foreach (var storyId in bestStoryIds)
         {
+            Console.WriteLine($"Retrieving details of story Id: {storyId}");
             var storyApiUrl = $"item/{storyId}.json";
             var story = await httpClient.GetFromJsonAsync<HackerNewsItem>(storyApiUrl);
             if (story != null)
                 bestStoriesItems.Add(story);
         }
 
+        Console.WriteLine($"All best stories retrieved, sorting and picking {n} top stories.");
         var selectedBestStories = bestStoriesItems
             .OrderByDescending(b => b.Score)
             .Take(n)

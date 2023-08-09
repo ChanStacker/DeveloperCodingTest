@@ -9,10 +9,11 @@
 ## Assumptions
 
 * That the list of best stories has not been ordered by descending score already, therefore the sorting and selecting n stories has to be done by the Gateway
-* That 100 requests per minute to the HackerNews Api is an acceptable max limit considering that the entire list of best stories has to be retrieved  from HackerNews API and deserialised on each call.
+* That 100 requests per minute to the HackerNews Api is an acceptable max limit considering that the entire list of best stories has to be retrieved from HackerNews API and deserialised on each call.
 
 ## Improvements
 
+* Parallelize the retrieval of the story details after receiving the best stories list.
 * Extract interactions with the HackerNews Api into HackerNewsRepository where HttpClientFactory will be injected.
 * Add logging using Serilog
 * Implement unit test on the sorting and selecting logic by mocking the HackerNewsRepository
