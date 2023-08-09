@@ -45,30 +45,28 @@ var app = builder.Build();
 app.UseIpRateLimiting();
 
 // Configure the HTTP request pipeline.
-app.MapGet("/stories/best/{n}", async (IHttpClientFactory httpClientFactory, int n) =>
+app.MapGet("/best-stories/{n}", async (IHttpClientFactory httpClientFactory, int n) =>
 {
     if (n <= 0)
-        return Results.BadRequest("Invalid value for n.");
+        return Results.BadRequest("Parameter must be greater than 0.");
 
     var httpClient = httpClientFactory.CreateClient();
     var hackerNewsApiUrl = "https://hacker-news.firebaseio.com/v0/beststories.json";
 
     var bestStoryIds = await httpClient.GetFromJsonAsync<List<int>>(hackerNewsApiUrl);
-    if (bestStoryIds == null || bestStoryIds.Count == 0)
-        return Results.NotFound("No best stories found.");
+    if (bestStoryIds == null || !bestStoryIds.Any())
+        return Results.NotFound("Best stories list is empty.");
 
-    var bestStories = new List<HackerNewsItem>();
+    var bestStoriesItems = new List<HackerNewsItem>();
     foreach (var storyId in bestStoryIds)
     {
         var storyApiUrl = $"https://hacker-news.firebaseio.com/v0/item/{storyId}.json";
         var story = await httpClient.GetFromJsonAsync<HackerNewsItem>(storyApiUrl);
         if (story != null)
-        {
-            bestStories.Add(story);
-        }
+            bestStoriesItems.Add(story);
     }
 
-    var selectedBestStories = bestStories
+    var selectedBestStories = bestStoriesItems
         .OrderByDescending(b => b.Score)
         .Take(n)
         .Select(p =>
