@@ -1,11 +1,26 @@
+using HackerNewsGateway;
 using HackerNewsGateway.Model;
-using System.Reflection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System;
+using System.Text.Json;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddHttpClient();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.WriteIndented = true;
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.Converters.Add(new DateTimeConverter());
+});
 
 var app = builder.Build();
 
@@ -37,18 +52,17 @@ app.MapGet("/stories/best/{n}", async (IHttpClientFactory httpClientFactory, int
         .OrderByDescending(b => b.Score)
         .Take(n)
         .Select(p =>
-            new 
+            new HackerNewsStory
             {
                 Title = p.Title,
                 Uri = p.Url,
                 PostedBy = p.By,
-                Time = new DateTime(p.Time, DateTimeKind.Utc),
+                Time = DateTimeOffset.FromUnixTimeSeconds(p.Time).DateTime,
                 Score = p.Score,
                 CommentCount = p.Kids.Length
             });
 
     return Results.Ok(selectedBestStories);
 });
-
 
 app.Run();
