@@ -14,5 +14,6 @@
 ## Improvements
 
 * Extract interactions with the HackerNews Api into HackerNewsRepository where HttpClientFactory will be injected.
-* Implement unit test on the sorting and selecting logic by mocking the HackerNewsRepository
 * Add logging using Serilog
+* Implement unit test on the sorting and selecting logic by mocking the HackerNewsRepository
+* Make use of the Fakes utility in the unit test project and unit test different scenarios of response payload.
